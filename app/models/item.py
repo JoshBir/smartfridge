@@ -45,6 +45,8 @@ class Item(db.Model):
         quantity: Quantity with unit (e.g., "500ml", "2 pieces").
         category: Item category.
         expiry_date: Expected expiry date.
+        barcode: Product barcode (EAN/UPC).
+        brand: Product brand name.
         notes: Additional notes.
         created_at: Creation timestamp.
         updated_at: Last update timestamp.
@@ -58,6 +60,8 @@ class Item(db.Model):
     quantity = db.Column(db.String(50), nullable=False, default='1')
     category = db.Column(db.String(30), default=ItemCategory.OTHER.value, nullable=False)
     expiry_date = db.Column(db.Date, nullable=True, index=True)
+    barcode = db.Column(db.String(50), nullable=True, index=True)
+    brand = db.Column(db.String(100), nullable=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
@@ -218,6 +222,8 @@ class Item(db.Model):
     def create(cls, owner_id: int, name: str, quantity: str = '1',
                category: str = ItemCategory.OTHER.value,
                expiry_date: Optional[date] = None,
+               barcode: Optional[str] = None,
+               brand: Optional[str] = None,
                notes: Optional[str] = None) -> 'Item':
         """
         Create a new item.
@@ -228,6 +234,8 @@ class Item(db.Model):
             quantity: Quantity string.
             category: Item category.
             expiry_date: Expiry date.
+            barcode: Product barcode.
+            brand: Product brand.
             notes: Additional notes.
         
         Returns:
@@ -239,11 +247,27 @@ class Item(db.Model):
             quantity=quantity,
             category=category,
             expiry_date=expiry_date,
+            barcode=barcode,
+            brand=brand,
             notes=notes,
         )
         db.session.add(item)
         db.session.commit()
         return item
+    
+    @classmethod
+    def get_by_barcode(cls, owner_id: int, barcode: str) -> Optional['Item']:
+        """
+        Find an item by barcode for a user.
+        
+        Args:
+            owner_id: User ID.
+            barcode: Product barcode.
+        
+        Returns:
+            Item instance or None.
+        """
+        return cls.query.filter_by(owner_id=owner_id, barcode=barcode).first()
 
 
 # Composite indexes for common queries

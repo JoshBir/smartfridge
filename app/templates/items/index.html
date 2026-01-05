@@ -7,9 +7,14 @@
     <h1 class="h2">
         <i class="bi bi-box-seam me-2"></i>My Fridge Items
     </h1>
-    <a href="{{ url_for('items.new') }}" class="btn btn-success">
-        <i class="bi bi-plus-lg me-1"></i>Add Item
-    </a>
+    <div>
+        <a href="{{ url_for('items.scan') }}" class="btn btn-outline-primary">
+            <i class="bi bi-upc-scan me-1"></i>Scan Barcode
+        </a>
+        <a href="{{ url_for('items.new') }}" class="btn btn-success">
+            <i class="bi bi-plus-lg me-1"></i>Add Item
+        </a>
+    </div>
 </div>
 
 <!-- Filters -->

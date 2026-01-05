@@ -22,6 +22,14 @@
                         {% endfor %}
                     </div>
                     
+                    <div class="mb-3">
+                        {{ form.brand.label(class="form-label") }}
+                        {{ form.brand(class="form-control" + (" is-invalid" if form.brand.errors else "")) }}
+                        {% for error in form.brand.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.quantity.label(class="form-label") }}
@@ -47,6 +55,20 @@
                         <div class="invalid-feedback">{{ error }}</div>
                         {% endfor %}
                         <div class="form-text">Leave blank if the item doesn't expire.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.barcode.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ form.barcode(class="form-control" + (" is-invalid" if form.barcode.errors else "")) }}
+                            <a href="{{ url_for('items.scan') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-upc-scan"></i>
+                            </a>
+                        </div>
+                        {% for error in form.barcode.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Optional - helps identify products faster.</div>
                     </div>
                     
                     <div class="mb-4">

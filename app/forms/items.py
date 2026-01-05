@@ -22,6 +22,15 @@ class ItemForm(FlaskForm):
         render_kw={'placeholder': 'e.g., Milk, Chicken Breast, Tomatoes', 'autofocus': True}
     )
     
+    brand = StringField(
+        'Brand',
+        validators=[
+            Optional(),
+            Length(max=100, message='Brand must be less than 100 characters.')
+        ],
+        render_kw={'placeholder': 'e.g., Tesco, Heinz'}
+    )
+    
     quantity = StringField(
         'Quantity',
         validators=[
@@ -54,6 +63,15 @@ class ItemForm(FlaskForm):
         validators=[Optional()],
         format='%Y-%m-%d',
         render_kw={'type': 'date'}
+    )
+    
+    barcode = StringField(
+        'Barcode',
+        validators=[
+            Optional(),
+            Length(max=50, message='Barcode must be less than 50 characters.')
+        ],
+        render_kw={'placeholder': 'Scanned or manual barcode'}
     )
     
     notes = TextAreaField(

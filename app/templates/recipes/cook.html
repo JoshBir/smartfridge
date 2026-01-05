@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Cook: {{ recipe.title }} - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="bi bi-fire me-2 text-danger"></i>Cook This Recipe
+    </h1>
+    <a href="{{ url_for('recipes.view', id=recipe.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to Recipe
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ recipe.title }}</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Select which ingredients you're using from your fridge. 
+                    They'll be removed when you cook this recipe.
+                </p>
+                
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    {% if matched_items %}
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Matched Ingredients ({{ matched_items|length }})
+                        </h5>
+                        
+                        <div class="list-group">
+                            {% for match in matched_items %}
+                            <label class="list-group-item list-group-item-action d-flex align-items-center">
+                                <input type="checkbox" name="remove_items" value="{{ match.item.id }}" 
+                                       class="form-check-input me-3" {% if match.selected %}checked{% endif %}>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>{{ match.item.name }}</strong>
+                                        <span class="badge bg-secondary">{{ match.item.quantity }}</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-arrow-right me-1"></i>
+                                        matches: "{{ match.ingredient_line }}"
+                                    </small>
+                                </div>
+                                {% if match.item.expiry_date %}
+                                <span class="badge bg-{{ match.item.status_class }} ms-2">
+                                    {% if match.item.is_expired %}
+                                    Expired
+                                    {% elif match.item.is_expiring_soon %}
+                                    Expires soon
+                                    {% else %}
+                                    {{ match.item.expiry_date.strftime('%d %b') }}
+                                    {% endif %}
+                                </span>
+                                {% endif %}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        No matching ingredients found in your fridge. You may need to shop first!
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">
+                            <i class="bi bi-list-check me-2"></i>
+                            Full Recipe Ingredients
+                        </h5>
+                        <ul class="list-group list-group-flush">
+                            {% for ingredient in recipe.ingredients_list %}
+                            <li class="list-group-item">{{ ingredient }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg flex-grow-1">
+                            <i class="bi bi-fire me-2"></i>
+                            Cook &amp; Remove Selected Ingredients
+                        </button>
+                    </div>
+                    
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Unchecked items will remain in your fridge.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>Recipe Info
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    {% if recipe.servings %}
+                    <dt class="col-6">Servings</dt>
+                    <dd class="col-6">{{ recipe.servings }}</dd>
+                    {% endif %}
+                    
+                    {% if recipe.prep_time_minutes %}
+                    <dt class="col-6">Prep Time</dt>
+                    <dd class="col-6">{{ recipe.prep_time_minutes }} mins</dd>
+                    {% endif %}
+                    
+                    {% if recipe.cook_time_minutes %}
+                    <dt class="col-6">Cook Time</dt>
+                    <dd class="col-6">{{ recipe.cook_time_minutes }} mins</dd>
+                    {% endif %}
+                    
+                    {% if recipe.total_time_minutes %}
+                    <dt class="col-6"><strong>Total</strong></dt>
+                    <dd class="col-6"><strong>{{ recipe.total_time_minutes }} mins</strong></dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam me-2"></i>Your Fridge
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>{{ matched_items|length }}</strong> of 
+                    <strong>{{ recipe.ingredients_list|length }}</strong> ingredients matched
+                </p>
+                <div class="progress mb-3" style="height: 10px;">
+                    {% set match_percent = (matched_items|length / recipe.ingredients_list|length * 100) if recipe.ingredients_list|length > 0 else 0 %}
+                    <div class="progress-bar bg-success" style="width: {{ match_percent }}%"></div>
+                </div>
+                <p class="text-muted small mb-0">
+                    {{ total_items }} total items in your fridge
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

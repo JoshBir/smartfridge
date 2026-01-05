@@ -1,7 +1,7 @@
 """
 Items blueprint for SmartFridge application.
 
-Handles CRUD operations for fridge items.
+Handles CRUD operations for fridge items including barcode scanning.
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
@@ -10,6 +10,7 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.item import Item, ItemCategory, ExpiryStatus
 from app.forms.items import ItemForm, ItemSearchForm
+from app.services.barcode import lookup_barcode
 
 
 items_bp = Blueprint('items', __name__)
@@ -63,6 +64,17 @@ def new():
     """Create a new item."""
     form = ItemForm()
     
+    # Pre-fill from barcode lookup if provided
+    barcode = request.args.get('barcode')
+    if barcode and request.method == 'GET':
+        product = lookup_barcode(barcode)
+        if product:
+            form.name.data = product.name
+            form.category.data = product.category
+            form.quantity.data = product.quantity or '1'
+            form.barcode.data = product.barcode
+            form.brand.data = product.brand
+    
     if form.validate_on_submit():
         item = Item.create(
             owner_id=current_user.id,
@@ -70,6 +82,8 @@ def new():
             quantity=form.quantity.data,
             category=form.category.data,
             expiry_date=form.expiry_date.data,
+            barcode=form.barcode.data or None,
+            brand=form.brand.data or None,
             notes=form.notes.data
         )
         
@@ -92,6 +106,8 @@ def edit(id):
         item.quantity = form.quantity.data
         item.category = form.category.data
         item.expiry_date = form.expiry_date.data
+        item.barcode = form.barcode.data or None
+        item.brand = form.brand.data or None
         item.notes = form.notes.data
         
         db.session.commit()
@@ -190,3 +206,84 @@ def api_delete(id):
     db.session.commit()
     
     return jsonify({'success': True, 'message': 'Item deleted'})
+
+
+# Barcode scanning
+@items_bp.route('/scan')
+@login_required
+def scan():
+    """Barcode scanner page."""
+    return render_template('items/scan.html')
+
+
+@items_bp.route('/api/barcode/<barcode>')
+@login_required
+def api_barcode_lookup(barcode):
+    """API: Look up product information by barcode."""
+    product = lookup_barcode(barcode)
+    
+    if product:
+        return jsonify({
+            'success': True,
+            'product': product.to_dict()
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'Product not found. You can still add it manually.'
+        }), 404
+
+
+@items_bp.route('/api/barcode', methods=['POST'])
+@login_required
+def api_add_by_barcode():
+    """API: Add item by barcode (with optional manual data)."""
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'success': False, 'message': 'No data provided'}), 400
+    
+    barcode = data.get('barcode')
+    name = data.get('name')
+    
+    if not name:
+        # Try to look up the barcode
+        if barcode:
+            product = lookup_barcode(barcode)
+            if product:
+                name = product.name
+            else:
+                return jsonify({'success': False, 'message': 'Product name required'}), 400
+        else:
+            return jsonify({'success': False, 'message': 'Product name required'}), 400
+    
+    # Parse expiry date if provided
+    expiry_date = None
+    if data.get('expiry_date'):
+        from datetime import datetime
+        try:
+            expiry_date = datetime.strptime(data['expiry_date'], '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    item = Item.create(
+        owner_id=current_user.id,
+        name=name,
+        quantity=data.get('quantity', '1'),
+        category=data.get('category', 'other'),
+        expiry_date=expiry_date,
+        barcode=barcode,
+        brand=data.get('brand'),
+        notes=data.get('notes')
+    )
+    
+    return jsonify({
+        'success': True,
+        'message': f'"{item.name}" added to your fridge',
+        'item': {
+            'id': item.id,
+            'name': item.name,
+            'quantity': item.quantity,
+            'category': item.category,
+        }
+    })

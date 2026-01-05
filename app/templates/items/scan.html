@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Barcode - SmartFridge{% endblock %}
+
+{% block extra_css %}
+<style>
+    #scanner-container {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    #video {
+        width: 100%;
+        border-radius: 8px;
+        background: #000;
+    }
+    #scanner-overlay {
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: rgba(0, 255, 0, 0.7);
+        animation: scan 2s linear infinite;
+    }
+    @keyframes scan {
+        0%, 100% { top: 30%; }
+        50% { top: 70%; }
+    }
+    .product-preview {
+        display: none;
+    }
+    .product-preview.show {
+        display: block;
+    }
+    .manual-entry {
+        border-top: 1px solid #dee2e6;
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="bi bi-upc-scan me-2"></i>Scan Barcode
+    </h1>
+    <a href="{{ url_for('items.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-camera me-2"></i>Camera Scanner
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="scanner-container" class="mb-3">
+                    <video id="video" playsinline></video>
+                    <div id="scanner-overlay"></div>
+                </div>
+                
+                <div class="d-flex gap-2 justify-content-center mb-3">
+                    <button id="startBtn" class="btn btn-success">
+                        <i class="bi bi-play-fill me-1"></i>Start Camera
+                    </button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>
+                        <i class="bi bi-stop-fill me-1"></i>Stop
+                    </button>
+                </div>
+                
+                <div class="manual-entry">
+                    <label for="manualBarcode" class="form-label">Or enter barcode manually:</label>
+                    <div class="input-group">
+                        <input type="text" id="manualBarcode" class="form-control" 
+                               placeholder="Enter barcode number" pattern="[0-9]*" inputmode="numeric">
+                        <button id="lookupBtn" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>Look Up
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Tip:</strong> Position the barcode within the camera view. 
+            Works best with good lighting and a steady hand.
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div id="productPreview" class="card border-0 shadow-sm product-preview">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle me-2"></i>Product Found
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <img id="productImage" src="" alt="Product" class="rounded me-3" 
+                         style="width: 80px; height: 80px; object-fit: contain; background: #f8f9fa; display: none;">
+                    <div>
+                        <h5 id="productName" class="mb-1"></h5>
+                        <p id="productBrand" class="text-muted mb-0"></p>
+                    </div>
+                </div>
+                
+                <form id="addItemForm">
+                    <input type="hidden" id="formBarcode" name="barcode">
+                    
+                    <div class="mb-3">
+                        <label for="formName" class="form-label">Name</label>
+                        <input type="text" id="formName" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="formBrand" class="form-label">Brand</label>
+                            <input type="text" id="formBrand" name="brand" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="formQuantity" class="form-label">Quantity</label>
+                            <input type="text" id="formQuantity" name="quantity" class="form-control" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="formCategory" class="form-label">Category</label>
+                            <select id="formCategory" name="category" class="form-select">
+                                <option value="dairy">Dairy</option>
+                                <option value="meat">Meat</option>
+                                <option value="fish">Fish</option>
+                                <option value="vegetables">Vegetables</option>
+                                <option value="fruits">Fruits</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="condiments">Condiments</option>
+                                <option value="leftovers">Leftovers</option>
+                                <option value="frozen">Frozen</option>
+                                <option value="other" selected>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="formExpiry" class="form-label">Expiry Date</label>
+                            <input type="date" id="formExpiry" name="expiry_date" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1">
+                            <i class="bi bi-plus-lg me-1"></i>Add to Fridge
+                        </button>
+                        <button type="button" id="scanAnotherBtn" class="btn btn-outline-secondary">
+                            <i class="bi bi-upc-scan me-1"></i>Scan Another
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div id="notFoundCard" class="card border-0 shadow-sm product-preview">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">
+                    <i class="bi bi-question-circle me-2"></i>Product Not Found
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>This barcode wasn't found in our database. You can still add it manually:</p>
+                <a id="addManuallyLink" href="#" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Add Manually
+                </a>
+            </div>
+        </div>
+        
+        <!-- Recently added items -->
+        <div id="recentItems" class="card border-0 shadow-sm mt-3" style="display: none;">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>Just Added
+                </h6>
+            </div>
+            <ul id="recentItemsList" class="list-group list-group-flush">
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@aspect/barcode-scanner@1.4.0/dist/BarcodeScanner.min.js"></script>
+<script src="https://unpkg.com/@AspectoJS/barcode@1.1.5"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('video');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const lookupBtn = document.getElementById('lookupBtn');
+    const manualBarcode = document.getElementById('manualBarcode');
+    const productPreview = document.getElementById('productPreview');
+    const notFoundCard = document.getElementById('notFoundCard');
+    const addItemForm = document.getElementById('addItemForm');
+    const scanAnotherBtn = document.getElementById('scanAnotherBtn');
+    const recentItems = document.getElementById('recentItems');
+    const recentItemsList = document.getElementById('recentItemsList');
+    
+    let stream = null;
+    let scanning = false;
+    let lastScannedCode = null;
+    
+    // Simple barcode detection using canvas analysis
+    async function startScanner() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            video.srcObject = stream;
+            await video.play();
+            
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            scanning = true;
+            
+            // Use BarcodeDetector API if available
+            if ('BarcodeDetector' in window) {
+                const barcodeDetector = new BarcodeDetector({
+                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39']
+                });
+                
+                detectBarcode(barcodeDetector);
+            } else {
+                console.log('BarcodeDetector not supported, use manual entry');
+            }
+        } catch (err) {
+            console.error('Camera error:', err);
+            alert('Could not access camera. Please use manual barcode entry.');
+        }
+    }
+    
+    async function detectBarcode(detector) {
+        if (!scanning) return;
+        
+        try {
+            const barcodes = await detector.detect(video);
+            if (barcodes.length > 0) {
+                const code = barcodes[0].rawValue;
+                if (code !== lastScannedCode) {
+                    lastScannedCode = code;
+                    lookupBarcode(code);
+                }
+            }
+        } catch (err) {
+            console.error('Detection error:', err);
+        }
+        
+        if (scanning) {
+            requestAnimationFrame(() => detectBarcode(detector));
+        }
+    }
+    
+    function stopScanner() {
+        scanning = false;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        video.srcObject = null;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+    }
+    
+    async function lookupBarcode(barcode) {
+        // Play a beep sound
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            oscillator.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        } catch (e) {}
+        
+        try {
+            const response = await fetch(`/items/api/barcode/${barcode}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                showProductPreview(data.product);
+            } else {
+                showNotFound(barcode);
+            }
+        } catch (err) {
+            console.error('Lookup error:', err);
+            showNotFound(barcode);
+        }
+    }
+    
+    function showProductPreview(product) {
+        productPreview.classList.add('show');
+        notFoundCard.classList.remove('show');
+        
+        document.getElementById('productName').textContent = product.name;
+        document.getElementById('productBrand').textContent = product.brand || '';
+        document.getElementById('formBarcode').value = product.barcode;
+        document.getElementById('formName').value = product.name;
+        document.getElementById('formBrand').value = product.brand || '';
+        document.getElementById('formQuantity').value = product.quantity || '1';
+        document.getElementById('formCategory').value = product.category || 'other';
+        
+        const img = document.getElementById('productImage');
+        if (product.image_url) {
+            img.src = product.image_url;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+    
+    function showNotFound(barcode) {
+        productPreview.classList.remove('show');
+        notFoundCard.classList.add('show');
+        document.getElementById('addManuallyLink').href = 
+            `{{ url_for('items.new') }}?barcode=${barcode}`;
+    }
+    
+    function resetScanner() {
+        productPreview.classList.remove('show');
+        notFoundCard.classList.remove('show');
+        lastScannedCode = null;
+        manualBarcode.value = '';
+    }
+    
+    function addToRecentItems(item) {
+        recentItems.style.display = 'block';
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+            <span>${item.name}</span>
+            <span class="badge bg-primary">${item.quantity}</span>
+        `;
+        recentItemsList.insertBefore(li, recentItemsList.firstChild);
+        
+        // Keep only last 5
+        while (recentItemsList.children.length > 5) {
+            recentItemsList.removeChild(recentItemsList.lastChild);
+        }
+    }
+    
+    // Event listeners
+    startBtn.addEventListener('click', startScanner);
+    stopBtn.addEventListener('click', stopScanner);
+    
+    lookupBtn.addEventListener('click', function() {
+        const barcode = manualBarcode.value.trim();
+        if (barcode) {
+            lookupBarcode(barcode);
+        }
+    });
+    
+    manualBarcode.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            lookupBtn.click();
+        }
+    });
+    
+    scanAnotherBtn.addEventListener('click', resetScanner);
+    
+    addItemForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            barcode: document.getElementById('formBarcode').value,
+            name: document.getElementById('formName').value,
+            brand: document.getElementById('formBrand').value,
+            quantity: document.getElementById('formQuantity').value,
+            category: document.getElementById('formCategory').value,
+            expiry_date: document.getElementById('formExpiry').value
+        };
+        
+        try {
+            const response = await fetch('{{ url_for("items.api_add_by_barcode") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                addToRecentItems(data.item);
+                resetScanner();
+                
+                // Show success toast
+                const toast = document.createElement('div');
+                toast.className = 'alert alert-success alert-dismissible fade show position-fixed bottom-0 end-0 m-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <i class="bi bi-check-circle me-2"></i>${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            } else {
+                alert(data.message || 'Error adding item');
+            }
+        } catch (err) {
+            console.error('Add error:', err);
+            alert('Error adding item. Please try again.');
+        }
+    });
+});
+</script>
+{% endblock %}

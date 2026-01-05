@@ -108,6 +108,66 @@ def delete(id):
     return redirect(url_for('recipes.index'))
 
 
+@recipes_bp.route('/<int:id>/cook', methods=['GET', 'POST'])
+@login_required
+def cook(id):
+    """
+    Cook a recipe - shows matched ingredients and removes them from fridge.
+    """
+    recipe = Recipe.query.filter_by(id=id, owner_id=current_user.id).first_or_404()
+    
+    # Get user's fridge items
+    user_items = Item.get_by_owner(current_user.id, include_expired=False)
+    
+    # Match recipe ingredients to fridge items
+    matched_items = []
+    recipe_ingredients = recipe.ingredients_list
+    
+    for item in user_items:
+        item_name_lower = item.name.lower()
+        for ingredient in recipe_ingredients:
+            ingredient_lower = ingredient.lower()
+            # Check if item name appears in ingredient line
+            if item_name_lower in ingredient_lower or any(
+                word in ingredient_lower 
+                for word in item_name_lower.split()
+                if len(word) > 2
+            ):
+                matched_items.append({
+                    'item': item,
+                    'ingredient_line': ingredient,
+                    'selected': True
+                })
+                break
+    
+    if request.method == 'POST':
+        # Get selected item IDs to remove
+        items_to_remove = request.form.getlist('remove_items')
+        
+        removed_count = 0
+        for item_id in items_to_remove:
+            item = Item.query.filter_by(id=int(item_id), owner_id=current_user.id).first()
+            if item:
+                db.session.delete(item)
+                removed_count += 1
+        
+        db.session.commit()
+        
+        if removed_count > 0:
+            flash(f'Enjoy your {recipe.title}! {removed_count} ingredient(s) removed from your fridge.', 'success')
+        else:
+            flash(f'Enjoy your {recipe.title}!', 'success')
+        
+        return redirect(url_for('recipes.view', id=recipe.id))
+    
+    return render_template(
+        'recipes/cook.html',
+        recipe=recipe,
+        matched_items=matched_items,
+        total_items=len(user_items)
+    )
+
+
 @recipes_bp.route('/suggest', methods=['GET', 'POST'])
 @login_required
 def suggest():
