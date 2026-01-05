@@ -1,15 +1,17 @@
-# SmartFridge
+﻿# SmartFridge
 
 A secure, production-ready Flask application for managing fridge ingredients, generating AI-powered recipe suggestions, and organising favourite cooking websites.
 
 ## Features
 
-- 🥗 **Ingredient Management** - Track fridge items with expiry dates
-- 🤖 **AI Recipe Suggestions** - Get recipe ideas based on available ingredients
-- 🌐 **Favourite Sites** - Save and organise cooking websites by tags
-- 👥 **Multi-User Support** - Individual accounts with role-based access
-- 🔒 **Security First** - OWASP-aligned security practices
-- 📱 **Responsive Design** - Works on desktop and mobile
+-  **Barcode Scanning** - Scan products with your phone camera to auto-fill item details
+-  **Ingredient Management** - Track fridge items with expiry dates
+-  **AI Recipe Suggestions** - Get recipe ideas based on available ingredients
+-  **Cook & Deduct** - Mark recipes as cooked to automatically remove used ingredients
+-  **Favourite Sites** - Save and organise cooking websites by tags
+-  **Multi-User Support** - Individual accounts with admin approval for new registrations
+-  **Security First** - OWASP-aligned security practices
+-  **Responsive Design** - Works on desktop and mobile
 
 ## Quick Start
 
@@ -22,17 +24,17 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/smartfridge.git
+   git clone https://github.com/JoshBir/smartfridge.git
    cd smartfridge
    ```
 
 2. **Create a virtual environment**
    ```bash
    python -m venv venv
-   
+
    # Windows
    venv\Scripts\activate
-   
+
    # Linux/macOS
    source venv/bin/activate
    ```
@@ -40,7 +42,7 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
-   
+
    # For development
    pip install -r requirements-dev.txt
    ```
@@ -64,6 +66,36 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 
    Visit http://127.0.0.1:5000 in your browser.
 
+## Key Features Explained
+
+###  Barcode Scanning
+
+Scan product barcodes using your phone's camera to automatically fill in:
+- Product name
+- Brand
+- Category
+- Quantity
+
+**Powered by [Open Food Facts](https://world.openfoodfacts.org)** - a free, open-source food database with millions of products. No API key required!
+
+The scanner works best on mobile devices with camera access. You can also manually enter barcodes.
+
+###  Cook & Deduct Ingredients
+
+When you cook a recipe:
+1. Click "Cook This" on any saved recipe
+2. SmartFridge matches recipe ingredients to your fridge items
+3. Select which items you're using
+4. Items are automatically removed from your fridge
+
+###  User Registration & Admin Approval
+
+New users must be approved by an admin before they can log in:
+1. User registers an account
+2. Admin sees pending approval in the admin dashboard
+3. Admin approves or rejects the registration
+4. User can log in once approved
+
 ## Configuration
 
 Key environment variables:
@@ -73,9 +105,28 @@ Key environment variables:
 | `FLASK_CONFIG` | Configuration mode | `development` |
 | `SECRET_KEY` | Session encryption key | *Required* |
 | `DATABASE_URL` | Database connection string | `sqlite:///smartfridge.db` |
-| `AI_ADAPTER` | AI backend (`local`, `openai`, `azure`) | `local` |
+| `AI_PROVIDER` | AI backend (`local`, `openai`, `azure`, `gemini`, `groq`) | `local` |
+| `AI_API_KEY` | API key for AI provider | *Optional* |
 
 See `.env.example` for all options.
+
+## AI Recipe Suggestions
+
+SmartFridge supports multiple AI backends for recipe suggestions:
+
+| Provider | Free Tier | Setup |
+|----------|-----------|-------|
+| **Local** (default) | Unlimited | No setup needed - rule-based matching |
+| **Google Gemini** | 15 RPM, 1M tokens/day | Get key at [makersuite.google.com](https://makersuite.google.com/app/apikey) |
+| **Groq** | 30 RPM, 14,400 req/day | Get key at [console.groq.com](https://console.groq.com/keys) |
+| **OpenAI** | Paid | Get key at [platform.openai.com](https://platform.openai.com) |
+| **Azure OpenAI** | Paid | Azure subscription required |
+
+Configure with:
+```ini
+AI_PROVIDER=gemini
+AI_API_KEY=your-api-key
+```
 
 ## CLI Commands
 
@@ -88,51 +139,10 @@ flask db upgrade           # Run migrations
 flask create-admin         # Create admin user
 flask set-password         # Reset user password
 flask list-users           # List all users
-flask activate-user        # Activate a user
-flask deactivate-user      # Deactivate a user
 
 # Data management
 flask seed-recipes         # Load canonical recipes
 flask clean-expired        # Remove old expired items
-```
-
-## Project Structure
-
-```
-smartfridge/
-├── app/
-│   ├── __init__.py        # Application factory
-│   ├── config.py          # Configuration classes
-│   ├── extensions.py      # Flask extensions
-│   ├── cli.py             # CLI commands
-│   ├── blueprints/        # Route handlers
-│   │   ├── main.py
-│   │   ├── auth.py
-│   │   ├── items.py
-│   │   ├── recipes.py
-│   │   ├── sites.py
-│   │   └── admin.py
-│   ├── models/            # Database models
-│   │   ├── user.py
-│   │   ├── item.py
-│   │   ├── recipe.py
-│   │   ├── site.py
-│   │   └── team.py
-│   ├── forms/             # WTForms
-│   ├── services/          # Business logic
-│   │   ├── security/
-│   │   └── recipes/
-│   ├── templates/         # Jinja2 templates
-│   └── static/            # CSS, JS, images
-├── data/
-│   └── canonical_recipes.json
-├── tests/                 # pytest tests
-├── migrations/            # Alembic migrations
-├── run.py                 # Development entry point
-├── wsgi.py                # Production entry point
-├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
 ```
 
 ## Running Tests
@@ -155,24 +165,13 @@ pytest tests/test_auth.py -v
 ```bash
 # Build and run
 docker-compose up -d
-
-# With production profile (includes nginx, redis)
-docker-compose --profile production up -d
 ```
 
 ### Azure App Service
 
-See [azure-deploy.md](docs/azure-deploy.md) for detailed instructions.
+See [docs/azure-deploy.md](docs/azure-deploy.md) for detailed instructions.
 
-### Manual Deployment
-
-```bash
-# Install Gunicorn
-pip install gunicorn
-
-# Run with Gunicorn
-gunicorn -w 4 -b 0.0.0.0:8000 wsgi:application
-```
+See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for complete setup guide.
 
 ## Security Features
 
@@ -180,36 +179,17 @@ gunicorn -w 4 -b 0.0.0.0:8000 wsgi:application
 - **Password Hashing** - bcrypt with work factor 12
 - **Session Security** - HttpOnly, Secure, SameSite cookies
 - **Rate Limiting** - Protection against brute force attacks
-- **Content Security Policy** - XSS prevention headers
+- **Admin Approval** - New registrations require admin approval
 - **Input Validation** - Server-side validation on all inputs
 
-See [SECURITY.md](SECURITY.md) for security policy and reporting.
-
-## AI Recipe Suggestions
-
-SmartFridge supports multiple AI backends:
-
-- **Local** (default) - Rule-based matching with canonical recipes
-- **OpenAI** - GPT-powered suggestions
-- **Azure OpenAI** - Enterprise Azure deployment
-
-Configure with `AI_ADAPTER` environment variable.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests (`pytest`)
-4. Commit changes (`git commit -m 'Add amazing feature'`)
-5. Push to branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+See [SECURITY.md](SECURITY.md) for security policy.
 
 ## Licence
 
-This project is licensed under the MIT Licence - see the [LICENCE](LICENCE) file for details.
+MIT Licence - see [LICENCE](LICENCE) file.
 
 ## Acknowledgements
 
-- [Flask](https://flask.palletsprojects.com/) - The web framework
+- [Flask](https://flask.palletsprojects.com/) - Web framework
 - [Bootstrap](https://getbootstrap.com/) - UI framework
-- [Bootstrap Icons](https://icons.getbootstrap.com/) - Icon library
+- [Open Food Facts](https://world.openfoodfacts.org) - Barcode database

@@ -69,8 +69,16 @@ SECRET_KEY=your-secret-key-here-make-it-long-and-random
 # Optional: Set to 'development' for debug mode
 FLASK_CONFIG=development
 
-# Optional: AI adapter (use 'local' for development)
-AI_ADAPTER=local
+# AI Recipe Generation (choose one)
+AI_ADAPTER=local          # Default - uses built-in recipe templates
+# AI_ADAPTER=gemini       # Google Gemini (free tier: 15 RPM, 1M tokens/day)
+# AI_ADAPTER=groq         # Groq (free tier: 30 RPM, 14,400 req/day)
+
+# If using Gemini:
+# GEMINI_API_KEY=your-gemini-api-key
+
+# If using Groq:
+# GROQ_API_KEY=your-groq-api-key
 ```
 
 **Tip:** Generate a secure secret key with Python:
@@ -110,6 +118,63 @@ Open your browser and go to: **http://127.0.0.1:5000**
 
 - Login with the admin credentials you created
 - Start adding fridge items!
+
+---
+
+## Using Key Features
+
+### User Registration & Admin Approval
+
+New user registrations require admin approval before they can log in:
+
+1. **New users register** at `/auth/register`
+2. **Admin reviews** pending registrations at **Admin Panel → Pending Approvals**
+3. **Admin approves or rejects** each registration
+4. **Approved users** can then log in normally
+
+Admins can approve users individually or use "Approve All" for batch approval.
+
+### Barcode Scanning
+
+Add items quickly by scanning product barcodes:
+
+1. Go to **Fridge Items → Scan Barcode**
+2. Allow camera access when prompted
+3. Point your camera at a product barcode
+4. The app queries the **Open Food Facts** database automatically
+5. Review the detected product info and confirm to add
+
+**Note:** Barcode scanning uses the free [Open Food Facts API](https://world.openfoodfacts.org/) - no API key required. Works best on mobile devices with camera access.
+
+### Cook This - Ingredient Deduction
+
+When you cook a recipe, automatically remove the ingredients from your fridge:
+
+1. View any recipe and click **"Cook This"**
+2. The app matches recipe ingredients against your fridge items
+3. Review the matched items (you can uncheck items you didn't use)
+4. Click **"Cook & Remove Items"** to deduct them from your inventory
+
+The ingredient matching uses fuzzy matching - it looks for item names within ingredient descriptions, so "chicken breast" will match an ingredient line like "2 chicken breasts, diced".
+
+### AI Recipe Generation
+
+Generate recipes based on your fridge contents:
+
+1. Go to **Recipes → AI Recipe Suggestions**
+2. Select ingredients from your fridge
+3. Choose dietary preferences if needed
+4. Get AI-generated recipes tailored to your ingredients
+
+**AI Provider Options:**
+
+| Provider | Free Tier | Setup |
+|----------|-----------|-------|
+| Local | Unlimited | Default - built-in templates |
+| [Gemini](https://makersuite.google.com/app/apikey) | 15 RPM, 1M tokens/day | Get API key from Google AI Studio |
+| [Groq](https://console.groq.com/keys) | 30 RPM, 14,400 req/day | Get API key from Groq Console |
+
+---
 
 ### Running Tests
 
@@ -255,6 +320,12 @@ az webapp config appsettings set `
         DATABASE_URL=$DATABASE_URL `
         AI_ADAPTER=local `
         SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+# Optional: Configure AI Recipe Generation
+# For Gemini:
+# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_ADAPTER=gemini GEMINI_API_KEY=your-key
+# For Groq:
+# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_ADAPTER=groq GROQ_API_KEY=your-key
 ```
 
 ### Step 7: Configure Startup Command
@@ -394,6 +465,8 @@ az group delete --name $RESOURCE_GROUP --yes --no-wait
 | `venv\Scripts\Activate` fails | Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` |
 | `flask` command not found | Ensure venv is activated: `.\venv\Scripts\Activate` |
 | Database errors | Delete `instance/smartfridge.db` and run `flask init-db` again |
+| Barcode scanner not working | Use HTTPS (required for camera access) or test on `localhost` |
+| Barcode not found | Not all products are in Open Food Facts - add item manually |
 
 ### Azure Issues
 
