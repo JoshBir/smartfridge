@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold text-success mb-4">
+                Your Smart Kitchen Assistant
+            </h1>
+            <p class="lead mb-4">
+                Never waste food again! SmartFridge helps you track your fridge ingredients,
+                suggests recipes based on what you have, and keeps your favourite cooking
+                websites organised.
+            </p>
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg px-4">
+                    <i class="bi bi-person-plus me-2"></i>Get Started
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-success btn-lg px-4">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Log In
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+            <div class="p-5">
+                <i class="bi bi-box-seam text-success" style="font-size: 12rem;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Features</h2>
+            <p class="text-muted">Everything you need to manage your kitchen efficiently</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto"
+                         style="width: 64px; height: 64px; line-height: 64px;">
+                        <i class="bi bi-list-check fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Track Ingredients</h5>
+                    <p class="card-text text-muted">
+                        Keep track of what's in your fridge with expiry dates. Get alerts
+                        before items go off.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto"
+                         style="width: 64px; height: 64px; line-height: 64px;">
+                        <i class="bi bi-lightbulb fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Recipe Suggestions</h5>
+                    <p class="card-text text-muted">
+                        Get AI-powered recipe suggestions based on what you already have.
+                        Save your favourites for later.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto"
+                         style="width: 64px; height: 64px; line-height: 64px;">
+                        <i class="bi bi-bookmark-star fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Favourite Sites</h5>
+                    <p class="card-text text-muted">
+                        Organise your favourite cooking websites with tags.
+                        Quick access to all your go-to recipes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="row py-5">
+        <div class="col-12">
+            <div class="card bg-success text-white border-0">
+                <div class="card-body text-center py-5">
+                    <h3 class="mb-3">Ready to reduce food waste?</h3>
+                    <p class="mb-4">Join SmartFridge today and start managing your kitchen smarter.</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">
+                        Create Free Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

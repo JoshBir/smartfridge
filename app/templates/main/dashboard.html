@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </h1>
+    <a href="{{ url_for('items.new') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Add Item
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary bg-gradient text-white rounded-circle p-3">
+                            <i class="bi bi-box-seam fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Total Items</h6>
+                        <h3 class="mb-0">{{ total_items }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('items.index') }}" class="text-decoration-none">
+                    View all items <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-success bg-gradient text-white rounded-circle p-3">
+                            <i class="bi bi-book fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Saved Recipes</h6>
+                        <h3 class="mb-0">{{ total_recipes }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('recipes.index') }}" class="text-decoration-none">
+                    View recipes <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-info bg-gradient text-white rounded-circle p-3">
+                            <i class="bi bi-globe fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted mb-1">Favourite Sites</h6>
+                        <h3 class="mb-0">{{ total_sites }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <a href="{{ url_for('sites.index') }}" class="text-decoration-none">
+                    View sites <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Expiring Soon -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-warning text-dark border-0">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Expiring Soon
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if expiring_items %}
+                <ul class="list-group list-group-flush">
+                    {% for item in expiring_items[:5] %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ item.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ item.quantity }}</small>
+                        </div>
+                        <span class="badge bg-warning text-dark">
+                            {% if item.days_until_expiry == 0 %}
+                                Today
+                            {% elif item.days_until_expiry == 1 %}
+                                Tomorrow
+                            {% else %}
+                                {{ item.days_until_expiry }} days
+                            {% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if expiring_items|length > 5 %}
+                <div class="mt-3">
+                    <a href="{{ url_for('items.expiring') }}" class="btn btn-sm btn-outline-warning">
+                        View all {{ expiring_items|length }} items
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-check-circle me-2"></i>No items expiring soon. Great job!
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expired Items -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-danger text-white border-0">
+                <h5 class="mb-0">
+                    <i class="bi bi-x-circle me-2"></i>Expired Items
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if expired_items %}
+                <ul class="list-group list-group-flush">
+                    {% for item in expired_items[:5] %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <strong>{{ item.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ item.quantity }}</small>
+                        </div>
+                        <span class="badge bg-danger">
+                            {{ (-item.days_until_expiry) }} day{% if item.days_until_expiry != -1 %}s{% endif %} ago
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% if expired_items|length > 5 %}
+                <div class="mt-3">
+                    <a href="{{ url_for('items.expired') }}" class="btn btn-sm btn-outline-danger">
+                        View all {{ expired_items|length }} items
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-check-circle me-2"></i>No expired items. Well done!
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('items.new') }}" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-plus-circle d-block fs-4 mb-1"></i>
+                            Add Item
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('recipes.suggest') }}" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-lightbulb d-block fs-4 mb-1"></i>
+                            Get Suggestions
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('recipes.new') }}" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-journal-plus d-block fs-4 mb-1"></i>
+                            Add Recipe
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('sites.new') }}" class="btn btn-outline-secondary w-100 py-3">
+                            <i class="bi bi-bookmark-plus d-block fs-4 mb-1"></i>
+                            Add Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if categories %}
+<!-- Category Breakdown -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+                <h5 class="mb-0">
+                    <i class="bi bi-pie-chart me-2"></i>Items by Category
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    {% for category, count in categories.items() %}
+                    <div class="col-md-3 col-6">
+                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                            <span>{{ category }}</span>
+                            <span class="badge bg-secondary">{{ count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

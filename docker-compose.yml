@@ -1,0 +1,99 @@
+# SmartFridge Docker Compose
+# Development and production configurations
+
+services:
+  # Main Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: smartfridge-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_CONFIG=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://smartfridge:${DB_PASSWORD}@db:5432/smartfridge
+      - AI_ADAPTER=${AI_ADAPTER:-local}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app_logs:/app/logs
+    networks:
+      - smartfridge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: smartfridge-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=smartfridge
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=smartfridge
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartfridge-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartfridge -d smartfridge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx Reverse Proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    container_name: smartfridge-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - static_files:/app/static:ro
+    depends_on:
+      - web
+    networks:
+      - smartfridge-network
+    profiles:
+      - production
+
+  # Redis for session storage and rate limiting (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: smartfridge-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - smartfridge-network
+    profiles:
+      - production
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  smartfridge-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  app_logs:
+  static_files:
+  redis_data:

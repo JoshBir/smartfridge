@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <h1 class="h2 mb-4">
+            <i class="bi bi-{% if recipe %}pencil{% else %}journal-plus{% endif %} me-2"></i>{{ title }}
+        </h1>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('recipes.edit', id=recipe.id) if recipe else url_for('recipes.new') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else "")) }}
+                        {% for error in form.title.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ form.servings.label(class="form-label") }}
+                            {{ form.servings(class="form-control" + (" is-invalid" if form.servings.errors else "")) }}
+                            {% for error in form.servings.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.prep_time_minutes.label(class="form-label") }}
+                            {{ form.prep_time_minutes(class="form-control" + (" is-invalid" if form.prep_time_minutes.errors else "")) }}
+                            {% for error in form.prep_time_minutes.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.cook_time_minutes.label(class="form-label") }}
+                            {{ form.cook_time_minutes(class="form-control" + (" is-invalid" if form.cook_time_minutes.errors else "")) }}
+                            {% for error in form.cook_time_minutes.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.ingredients_text.label(class="form-label") }}
+                        {{ form.ingredients_text(class="form-control" + (" is-invalid" if form.ingredients_text.errors else "")) }}
+                        {% for error in form.ingredients_text.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter each ingredient on a new line, starting with a bullet point (•) or dash (-).</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.instructions.label(class="form-label") }}
+                        {{ form.instructions(class="form-control" + (" is-invalid" if form.instructions.errors else "")) }}
+                        {% for error in form.instructions.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter each step on a new line, numbered (1., 2., etc.).</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.source_url.label(class="form-label") }}
+                        {{ form.source_url(class="form-control" + (" is-invalid" if form.source_url.errors else "")) }}
+                        {% for error in form.source_url.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                        <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

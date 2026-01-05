@@ -1,0 +1,316 @@
+/* SmartFridge - Custom Styles */
+
+/* Root Variables */
+:root {
+    --sf-primary: #198754;
+    --sf-primary-dark: #146c43;
+    --sf-primary-light: #d1e7dd;
+    --sf-danger: #dc3545;
+    --sf-warning: #ffc107;
+    --sf-info: #0dcaf0;
+    --sf-light: #f8f9fa;
+    --sf-dark: #212529;
+    --sf-border-radius: 0.5rem;
+    --sf-transition: all 0.2s ease-in-out;
+}
+
+/* Body */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f7fa;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar Customisation */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-brand .bi {
+    color: var(--sf-primary);
+}
+
+/* Cards */
+.card {
+    border-radius: var(--sf-border-radius);
+    transition: var(--sf-transition);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    border-radius: var(--sf-border-radius) var(--sf-border-radius) 0 0 !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: var(--sf-border-radius);
+    transition: var(--sf-transition);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background-color: var(--sf-primary);
+    border-color: var(--sf-primary);
+}
+
+.btn-success:hover {
+    background-color: var(--sf-primary-dark);
+    border-color: var(--sf-primary-dark);
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: var(--sf-border-radius);
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--sf-primary);
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+/* Badges */
+.badge {
+    border-radius: var(--sf-border-radius);
+    font-weight: 500;
+}
+
+/* Expiry Status Indicators */
+.status-fresh {
+    border-left: 4px solid var(--sf-primary);
+}
+
+.status-expiring {
+    border-left: 4px solid var(--sf-warning);
+}
+
+.status-expired {
+    border-left: 4px solid var(--sf-danger);
+}
+
+/* Table Styles */
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}
+
+/* Stats Cards */
+.stats-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.stats-card .icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.stats-card .value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stats-card .label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Flash Messages */
+.alert {
+    border-radius: var(--sf-border-radius);
+    border: none;
+}
+
+.alert-dismissible .btn-close {
+    padding: 1rem;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--sf-primary);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Item Cards */
+.item-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.item-card .expiry-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0 var(--sf-border-radius) 0 var(--sf-border-radius);
+}
+
+/* Recipe Cards */
+.recipe-card .match-score {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Ingredient Tags */
+.ingredient-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    margin: 0.125rem;
+    background-color: var(--sf-primary-light);
+    color: var(--sf-primary-dark);
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.ingredient-tag.missing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Details/Summary Styling */
+details summary {
+    cursor: pointer;
+    user-select: none;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+details summary::before {
+    content: "▸ ";
+}
+
+details[open] summary::before {
+    content: "▾ ";
+}
+
+/* Loading Spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+    .btn-group-responsive {
+        flex-direction: column;
+    }
+    
+    .btn-group-responsive .btn {
+        border-radius: var(--sf-border-radius) !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stats-card .value {
+        font-size: 2rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .navbar, footer, .btn, .btn-group {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Utility Classes */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--sf-primary) 0%, var(--sf-primary-dark) 100%);
+}

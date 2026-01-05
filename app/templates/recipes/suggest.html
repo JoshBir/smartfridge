@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Recipe Suggestions - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="bi bi-lightbulb me-2"></i>Recipe Suggestions
+    </h1>
+    <a href="{{ url_for('recipes.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>My Recipes
+    </a>
+</div>
+
+<!-- Available Items Summary -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">
+            <i class="bi bi-box-seam me-2"></i>Your Available Ingredients ({{ items|length }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if items %}
+        <div class="d-flex flex-wrap gap-2">
+            {% for item in items %}
+            <span class="badge bg-{{ item.status_class }} {% if item.status_class == 'warning' %}text-dark{% endif %}">
+                {{ item.name }}
+                {% if item.is_expiring_soon %}
+                <i class="bi bi-exclamation-circle ms-1" title="Expiring soon"></i>
+                {% endif %}
+            </span>
+            {% endfor %}
+        </div>
+        
+        <form method="POST" action="{{ url_for('recipes.suggest') }}" class="mt-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-magic me-2"></i>Generate Recipe Suggestions
+            </button>
+        </form>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+            <p class="mt-3 mb-0">
+                Your fridge is empty! 
+                <a href="{{ url_for('items.new') }}">Add some items</a> to get recipe suggestions.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Suggestions -->
+{% if suggestions %}
+<h4 class="mb-3">
+    <i class="bi bi-stars text-warning me-2"></i>Suggested Recipes
+</h4>
+
+<div class="row g-4">
+    {% for suggestion, save_form in suggestions %}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ suggestion.title }}</h5>
+                    <span class="badge bg-light text-success">
+                        {{ suggestion.match_score|int }}% match
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    {% if suggestion.servings %}
+                    <div class="col-auto">
+                        <small class="text-muted">
+                            <i class="bi bi-people me-1"></i>{{ suggestion.servings }} servings
+                        </small>
+                    </div>
+                    {% endif %}
+                    {% if suggestion.prep_time_minutes %}
+                    <div class="col-auto">
+                        <small class="text-muted">
+                            <i class="bi bi-hourglass me-1"></i>{{ suggestion.prep_time_minutes }} min prep
+                        </small>
+                    </div>
+                    {% endif %}
+                    {% if suggestion.cook_time_minutes %}
+                    <div class="col-auto">
+                        <small class="text-muted">
+                            <i class="bi bi-fire me-1"></i>{{ suggestion.cook_time_minutes }} min cook
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <h6>Ingredients:</h6>
+                <div class="small mb-3" style="max-height: 150px; overflow-y: auto;">
+                    {{ suggestion.ingredients_text|replace('\n', '<br>')|safe }}
+                </div>
+                
+                {% if suggestion.missing_ingredients %}
+                <div class="alert alert-warning py-2 mb-3">
+                    <small>
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>Missing:</strong> {{ suggestion.missing_ingredients|join(', ') }}
+                    </small>
+                </div>
+                {% endif %}
+                
+                <details>
+                    <summary class="text-primary mb-2" style="cursor: pointer;">
+                        View Instructions
+                    </summary>
+                    <div class="small mt-2" style="max-height: 200px; overflow-y: auto;">
+                        {{ suggestion.instructions|replace('\n', '<br>')|safe }}
+                    </div>
+                </details>
+            </div>
+            <div class="card-footer bg-transparent">
+                <form method="POST" action="{{ url_for('recipes.save_suggestion') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="title" value="{{ suggestion.title }}">
+                    <input type="hidden" name="ingredients_text" value="{{ suggestion.ingredients_text }}">
+                    <input type="hidden" name="instructions" value="{{ suggestion.instructions }}">
+                    <input type="hidden" name="servings" value="{{ suggestion.servings or '' }}">
+                    <input type="hidden" name="prep_time_minutes" value="{{ suggestion.prep_time_minutes or '' }}">
+                    <input type="hidden" name="cook_time_minutes" value="{{ suggestion.cook_time_minutes or '' }}">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-bookmark-plus me-1"></i>Save This Recipe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,74 @@
+# SmartFridge .dockerignore
+# Files and directories to exclude from Docker builds
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+.eggs/
+*.egg-info/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+tests/
+pytest.ini
+.coveragerc
+coverage.xml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.env.local
+.env.development
+*.log
+logs/
+instance/
+
+# Database files (development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Misc
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db

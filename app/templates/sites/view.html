@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site.name }} - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('sites.index') }}">Favourite Sites</a></li>
+                <li class="breadcrumb-item active">{{ site.name }}</li>
+            </ol>
+        </nav>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-globe me-2"></i>{{ site.name }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Website URL</h6>
+                    <a href="{{ site.url }}" target="_blank" rel="noopener noreferrer" 
+                       class="btn btn-outline-success btn-lg w-100">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>
+                        Visit {{ site.url|replace('https://', '')|replace('http://', '')|truncate(40) }}
+                    </a>
+                </div>
+                
+                {% if site.description %}
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Description</h6>
+                    <p class="mb-0">{{ site.description }}</p>
+                </div>
+                {% endif %}
+                
+                {% if site.tags_list %}
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Tags</h6>
+                    <div>
+                        {% for tag in site.tags_list %}
+                        <a href="{{ url_for('sites.by_tag', tag=tag) }}" 
+                           class="badge bg-secondary text-decoration-none me-1 mb-1 fs-6">
+                            {{ tag }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="text-muted small">
+                    <i class="bi bi-calendar me-1"></i>
+                    Added {{ site.created_at.strftime('%d %B %Y') }}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('sites.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </a>
+                    <div>
+                        <a href="{{ url_for('sites.edit', id=site.id) }}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                        <form action="{{ url_for('sites.delete', id=site.id) }}" method="POST" 
+                              class="d-inline" onsubmit="return confirm('Are you sure you want to delete this site?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

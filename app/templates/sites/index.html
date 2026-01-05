@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Favourite Sites - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">
+        <i class="bi bi-globe me-2"></i>Favourite Cooking Sites
+    </h1>
+    <a href="{{ url_for('sites.new') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Add Site
+    </a>
+</div>
+
+<!-- Tags Filter -->
+{% if all_tags %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Filter by Tag:</h6>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('sites.index') }}" 
+               class="btn btn-sm {% if not current_tag %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                All
+            </a>
+            {% for tag in all_tags %}
+            <a href="{{ url_for('sites.by_tag', tag=tag) }}" 
+               class="btn btn-sm {% if current_tag == tag %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                {{ tag }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Sites List -->
+{% if sites %}
+<div class="row g-4">
+    {% for site in sites %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-2">
+                    <a href="{{ site.url }}" target="_blank" rel="noopener noreferrer" 
+                       class="text-decoration-none text-success">
+                        {{ site.name }}
+                        <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                    </a>
+                </h5>
+                
+                {% if site.description %}
+                <p class="card-text small text-muted mb-2">{{ site.description|truncate(100) }}</p>
+                {% endif %}
+                
+                {% if site.tags_list %}
+                <div class="mb-2">
+                    {% for tag in site.tags_list %}
+                    <a href="{{ url_for('sites.by_tag', tag=tag) }}" 
+                       class="badge bg-light text-secondary text-decoration-none me-1">
+                        {{ tag }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <small class="text-muted">
+                    <i class="bi bi-link-45deg me-1"></i>
+                    {{ site.url|replace('https://', '')|replace('http://', '')|truncate(30) }}
+                </small>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ url_for('sites.view', id=site.id) }}" 
+                       class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-eye me-1"></i>View
+                    </a>
+                    <a href="{{ url_for('sites.edit', id=site.id) }}" 
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                    <form action="{{ url_for('sites.delete', id=site.id) }}" method="POST" 
+                          class="d-inline" onsubmit="return confirm('Delete this site?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-globe text-muted" style="font-size: 4rem;"></i>
+    <h4 class="mt-3">No favourite sites saved</h4>
+    <p class="text-muted">Save your favourite cooking websites for quick access.</p>
+    <a href="{{ url_for('sites.new') }}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i>Add Your First Site
+    </a>
+</div>
+{% endif %}
+{% endblock %}

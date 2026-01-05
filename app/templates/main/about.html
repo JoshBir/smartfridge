@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}About - SmartFridge{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="h2 mb-4">
+            <i class="bi bi-info-circle me-2"></i>About SmartFridge
+        </h1>
+        
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <p class="lead">
+                    SmartFridge is a kitchen management application designed to help you 
+                    reduce food waste and make cooking easier.
+                </p>
+                
+                <h5 class="mt-4">Our Mission</h5>
+                <p>
+                    We believe that with better organisation and smart suggestions, everyone 
+                    can reduce food waste and enjoy cooking more. SmartFridge helps you keep 
+                    track of what's in your fridge, alerts you before items expire, and 
+                    suggests recipes based on what you have available.
+                </p>
+                
+                <h5 class="mt-4">Key Features</h5>
+                <ul>
+                    <li><strong>Ingredient Tracking:</strong> Keep a digital inventory of your fridge with expiry date tracking</li>
+                    <li><strong>Visual Alerts:</strong> Green, amber, and red indicators show item freshness at a glance</li>
+                    <li><strong>Recipe Suggestions:</strong> Get personalised recipe ideas based on your available ingredients</li>
+                    <li><strong>AI-Powered:</strong> Optional AI integration for creative recipe suggestions</li>
+                    <li><strong>Favourite Sites:</strong> Organise and tag your favourite cooking websites</li>
+                    <li><strong>Multi-User Support:</strong> Each user has their own private inventory</li>
+                </ul>
+                
+                <h5 class="mt-4">Security</h5>
+                <p>
+                    Your data security is our priority. SmartFridge implements industry-standard 
+                    security practices including:
+                </p>
+                <ul>
+                    <li>Secure password hashing with bcrypt</li>
+                    <li>CSRF protection on all forms</li>
+                    <li>Secure session management</li>
+                    <li>Content Security Policy headers</li>
+                    <li>HTTPS enforcement in production</li>
+                </ul>
+                
+                <h5 class="mt-4">Open Source</h5>
+                <p>
+                    SmartFridge is open source software released under the MIT licence.
+                    Contributions are welcome!
+                </p>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-success">
+                <i class="bi bi-arrow-left me-2"></i>Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
