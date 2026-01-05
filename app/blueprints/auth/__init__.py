@@ -32,10 +32,12 @@ def register():
         user = User.create(
             username=form.username.data,
             email=form.email.data,
-            password=form.password.data
+            password=form.password.data,
+            is_approved=False  # Requires admin approval
         )
         
-        flash('Registration successful! Please log in.', 'success')
+        flash('Registration successful! Your account is pending admin approval. '
+              'You will be able to log in once an administrator approves your account.', 'info')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', form=form)
@@ -55,6 +57,11 @@ def login():
         
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password.', 'danger')
+            return render_template('auth/login.html', form=form)
+        
+        if not user.is_approved:
+            flash('Your account is pending admin approval. '
+                  'Please wait for an administrator to approve your registration.', 'warning')
             return render_template('auth/login.html', form=form)
         
         if not user.is_active:

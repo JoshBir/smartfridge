@@ -55,7 +55,8 @@ def create_admin_command(username, email, password):
         email=email,
         password_hash=password_service.hash_password(password),
         role='admin',
-        is_active=True
+        is_active=True,
+        is_approved=True  # Admin users created via CLI are auto-approved
     )
     
     db.session.add(admin)

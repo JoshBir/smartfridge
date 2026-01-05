@@ -39,20 +39,34 @@ def admin_required(f):
 @admin_required
 def index():
     """Admin dashboard."""
+    from app.models.item import Item
+    from app.models.recipe import Recipe
+    from app.models.site import Site
+    
     # Get statistics
-    total_users = User.query.count()
-    active_users = User.query.filter_by(is_active=True).count()
-    admin_count = User.query.filter_by(role=UserRole.ADMIN.value).count()
+    stats = {
+        'total_users': User.query.count(),
+        'active_users': User.query.filter_by(is_active=True, is_approved=True).count(),
+        'admin_users': User.query.filter_by(role=UserRole.ADMIN.value).count(),
+        'pending_users': User.query.filter_by(is_approved=False).count(),
+        'total_items': Item.query.count(),
+        'total_recipes': Recipe.query.count(),
+        'total_sites': Site.query.count(),
+        'expired_items': Item.query.filter(Item.expiry_date < db.func.current_date()).count(),
+        'ai_recipes': Recipe.query.filter_by(is_ai_generated=True).count(),
+    }
     
     # Recent users
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     
+    # Pending approval users
+    pending_approval = User.get_pending_users()[:5]  # Show first 5
+    
     return render_template(
         'admin/index.html',
-        total_users=total_users,
-        active_users=active_users,
-        admin_count=admin_count,
+        stats=stats,
         recent_users=recent_users,
+        pending_approval=pending_approval,
     )
 
 
@@ -98,7 +112,8 @@ def create_user():
             username=form.username.data,
             email=form.email.data,
             password=form.password.data,
-            role=form.role.data
+            role=form.role.data,
+            is_approved=True  # Admin-created users are auto-approved
         )
         
         flash(f'User "{user.username}" has been created.', 'success')
@@ -226,3 +241,73 @@ def delete_user(id):
     
     flash(f'User "{username}" has been deleted.', 'success')
     return redirect(url_for('admin.users'))
+
+
+# ============================================================================
+# User Approval Management
+# ============================================================================
+
+@admin_bp.route('/users/pending')
+@login_required
+@admin_required
+def pending_users():
+    """List all users pending approval."""
+    users = User.get_pending_users()
+    return render_template('admin/pending_users.html', users=users)
+
+
+@admin_bp.route('/users/<int:id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_user(id):
+    """Approve a user registration."""
+    user = User.query.get_or_404(id)
+    
+    if user.is_approved:
+        flash(f'User "{user.username}" is already approved.', 'info')
+        return redirect(url_for('admin.pending_users'))
+    
+    user.approve()
+    
+    flash(f'User "{user.username}" has been approved and can now log in.', 'success')
+    return redirect(url_for('admin.pending_users'))
+
+
+@admin_bp.route('/users/<int:id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_user(id):
+    """Reject a user registration (deletes the account)."""
+    user = User.query.get_or_404(id)
+    
+    if user.is_approved:
+        flash(f'User "{user.username}" is already approved. Use delete instead.', 'warning')
+        return redirect(url_for('admin.users'))
+    
+    username = user.username
+    user.reject()
+    
+    flash(f'User "{username}" registration has been rejected and removed.', 'success')
+    return redirect(url_for('admin.pending_users'))
+
+
+@admin_bp.route('/users/approve-all', methods=['POST'])
+@login_required
+@admin_required
+def approve_all_users():
+    """Approve all pending user registrations."""
+    pending = User.get_pending_users()
+    
+    if not pending:
+        flash('No pending users to approve.', 'info')
+        return redirect(url_for('admin.pending_users'))
+    
+    count = 0
+    for user in pending:
+        user.is_approved = True
+        count += 1
+    
+    db.session.commit()
+    
+    flash(f'{count} user(s) have been approved.', 'success')
+    return redirect(url_for('admin.pending_users'))
