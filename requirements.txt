@@ -23,8 +23,10 @@ Flask-Limiter>=3.0.0,<4.0
 Flask-Mail>=0.9.1,<1.0
 email-validator>=2.0.0,<3.0
 
-# AI Integration (optional)
+# AI Integration (choose one or more)
 openai>=1.0.0,<2.0
+google-generativeai>=0.3.0,<1.0
+groq>=0.4.0,<1.0
 httpx>=0.25.0,<1.0
 
 # Production Server

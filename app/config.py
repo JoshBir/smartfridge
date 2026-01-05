@@ -74,9 +74,12 @@ class Config:
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@smartfridge.local')
     
     # AI configuration
-    AI_PROVIDER = os.environ.get('AI_PROVIDER', 'local')  # local, openai, azure
+    # Providers: local, openai, azure, gemini, groq
+    # Gemini (free): Get key at https://makersuite.google.com/app/apikey
+    # Groq (free): Get key at https://console.groq.com/keys
+    AI_PROVIDER = os.environ.get('AI_PROVIDER', 'local')
     AI_API_KEY = os.environ.get('AI_API_KEY')
-    AI_MODEL = os.environ.get('AI_MODEL', 'gpt-3.5-turbo')
+    AI_MODEL = os.environ.get('AI_MODEL')  # Model depends on provider
     AI_AZURE_ENDPOINT = os.environ.get('AI_AZURE_ENDPOINT')
     
     # Application settings

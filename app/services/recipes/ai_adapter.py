@@ -341,6 +341,130 @@ class MockAdapter:
         ][:max_results]
 
 
+class GeminiAdapter(OpenAIAdapter):
+    """
+    Google Gemini API adapter for recipe generation.
+    
+    Uses Google's Gemini models (generous free tier: 15 RPM, 1M tokens/day).
+    Get your free API key at: https://makersuite.google.com/app/apikey
+    """
+    
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+        """
+        Initialise Gemini adapter.
+        
+        Args:
+            api_key: Google AI API key.
+            model: Model to use (default: gemini-1.5-flash).
+        """
+        self.api_key = api_key or current_app.config.get('AI_API_KEY')
+        self.model = model or current_app.config.get('AI_MODEL', 'gemini-1.5-flash')
+    
+    def generate_recipes(
+        self,
+        items: List[Item],
+        max_results: int = 3
+    ) -> List[RecipeDraft]:
+        """
+        Generate recipes using Google Gemini API.
+        
+        Falls back to local rules engine if API fails.
+        """
+        if not self.api_key:
+            return LocalAdapter().generate_recipes(items, max_results)
+        
+        try:
+            import google.generativeai as genai
+            
+            genai.configure(api_key=self.api_key)
+            model = genai.GenerativeModel(self.model)
+            
+            results: List[RecipeDraft] = []
+            
+            for _ in range(min(max_results, 3)):
+                response = model.generate_content(
+                    self._build_prompt(items),
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=1000,
+                        temperature=0.7,
+                    )
+                )
+                
+                if response.text:
+                    draft = self._parse_response(response.text)
+                    if draft:
+                        results.append(draft)
+            
+            return results
+            
+        except Exception as e:
+            current_app.logger.error(f"Gemini API error: {e}")
+            return LocalAdapter().generate_recipes(items, max_results)
+
+
+class GroqAdapter(OpenAIAdapter):
+    """
+    Groq API adapter for recipe generation.
+    
+    Uses Groq's fast inference (free tier: 30 RPM, 14,400 req/day).
+    Get your free API key at: https://console.groq.com/keys
+    """
+    
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+        """
+        Initialise Groq adapter.
+        
+        Args:
+            api_key: Groq API key.
+            model: Model to use (default: llama-3.1-8b-instant).
+        """
+        self.api_key = api_key or current_app.config.get('AI_API_KEY')
+        self.model = model or current_app.config.get('AI_MODEL', 'llama-3.1-8b-instant')
+    
+    def generate_recipes(
+        self,
+        items: List[Item],
+        max_results: int = 3
+    ) -> List[RecipeDraft]:
+        """
+        Generate recipes using Groq API.
+        
+        Falls back to local rules engine if API fails.
+        """
+        if not self.api_key:
+            return LocalAdapter().generate_recipes(items, max_results)
+        
+        try:
+            from groq import Groq
+            
+            client = Groq(api_key=self.api_key)
+            
+            results: List[RecipeDraft] = []
+            
+            for _ in range(min(max_results, 3)):
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful cooking assistant."},
+                        {"role": "user", "content": self._build_prompt(items)}
+                    ],
+                    max_tokens=1000,
+                    temperature=0.7,
+                )
+                
+                if response.choices:
+                    content = response.choices[0].message.content
+                    draft = self._parse_response(content)
+                    if draft:
+                        results.append(draft)
+            
+            return results
+            
+        except Exception as e:
+            current_app.logger.error(f"Groq API error: {e}")
+            return LocalAdapter().generate_recipes(items, max_results)
+
+
 def get_ai_adapter() -> AIAdapter:
     """
     Get the configured AI adapter.
@@ -353,6 +477,10 @@ def get_ai_adapter() -> AIAdapter:
         return OpenAIAdapter()
     elif provider == 'azure':
         return AzureOpenAIAdapter()
+    elif provider == 'gemini':
+        return GeminiAdapter()
+    elif provider == 'groq':
+        return GroqAdapter()
     elif provider == 'mock':
         return MockAdapter()
     else:
