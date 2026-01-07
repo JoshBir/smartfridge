@@ -463,6 +463,77 @@ class GroqAdapter(OpenAIAdapter):
             return LocalAdapter().generate_recipes(items, max_results)
 
 
+class OpenRouterAdapter(OpenAIAdapter):
+    """
+    OpenRouter API adapter for recipe generation.
+    
+    OpenRouter provides access to many models via OpenAI-compatible API.
+    Free models available! Get your API key at: https://openrouter.ai/keys
+    
+    Free models include:
+    - meta-llama/llama-3.2-3b-instruct:free
+    - google/gemma-2-9b-it:free
+    - mistralai/mistral-7b-instruct:free
+    """
+    
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+        """
+        Initialise OpenRouter adapter.
+        
+        Args:
+            api_key: OpenRouter API key.
+            model: Model to use (default: meta-llama/llama-3.2-3b-instruct:free).
+        """
+        self.api_key = api_key or current_app.config.get('AI_API_KEY')
+        self.model = model or current_app.config.get('AI_MODEL', 'meta-llama/llama-3.2-3b-instruct:free')
+    
+    def generate_recipes(
+        self,
+        items: List[Item],
+        max_results: int = 3
+    ) -> List[RecipeDraft]:
+        """
+        Generate recipes using OpenRouter API.
+        
+        Falls back to local rules engine if API fails.
+        """
+        if not self.api_key:
+            return LocalAdapter().generate_recipes(items, max_results)
+        
+        try:
+            import openai
+            
+            client = openai.OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=self.api_key,
+            )
+            
+            results: List[RecipeDraft] = []
+            
+            for _ in range(min(max_results, 3)):
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful cooking assistant."},
+                        {"role": "user", "content": self._build_prompt(items)}
+                    ],
+                    max_tokens=1000,
+                    temperature=0.7,
+                )
+                
+                if response.choices:
+                    content = response.choices[0].message.content
+                    draft = self._parse_response(content)
+                    if draft:
+                        results.append(draft)
+            
+            return results
+            
+        except Exception as e:
+            current_app.logger.error(f"OpenRouter API error: {e}")
+            return LocalAdapter().generate_recipes(items, max_results)
+
+
 def get_ai_adapter() -> AIAdapter:
     """
     Get the configured AI adapter.
@@ -479,7 +550,10 @@ def get_ai_adapter() -> AIAdapter:
         return GeminiAdapter()
     elif provider == 'groq':
         return GroqAdapter()
+    elif provider == 'openrouter':
+        return OpenRouterAdapter()
     elif provider == 'mock':
         return MockAdapter()
     else:
         return LocalAdapter()
+
