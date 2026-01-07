@@ -1,4 +1,4 @@
-# SmartFridge - Getting Started Guide
+﻿# SmartFridge - Getting Started Guide
 
 This guide provides step-by-step instructions for running SmartFridge locally in development mode and deploying to Azure.
 
@@ -70,15 +70,15 @@ SECRET_KEY=your-secret-key-here-make-it-long-and-random
 FLASK_CONFIG=development
 
 # AI Recipe Generation (choose one)
-AI_ADAPTER=local          # Default - uses built-in recipe templates
-# AI_ADAPTER=gemini       # Google Gemini (free tier: 15 RPM, 1M tokens/day)
-# AI_ADAPTER=groq         # Groq (free tier: 30 RPM, 14,400 req/day)
+AI_PROVIDER=local          # Default - uses built-in recipe templates
+# AI_PROVIDER=gemini       # Google Gemini (free tier: 15 RPM, 1M tokens/day)
+# AI_PROVIDER=groq         # Groq (free tier: 30 RPM, 14,400 req/day)
 
 # If using Gemini:
-# GEMINI_API_KEY=your-gemini-api-key
+# AI_API_KEY=your-gemini-api-key
 
 # If using Groq:
-# GROQ_API_KEY=your-groq-api-key
+# AI_API_KEY=your-groq-api-key
 ```
 
 **Tip:** Generate a secure secret key with Python:
@@ -128,7 +128,7 @@ Open your browser and go to: **http://127.0.0.1:5000**
 New user registrations require admin approval before they can log in:
 
 1. **New users register** at `/auth/register`
-2. **Admin reviews** pending registrations at **Admin Panel → Pending Approvals**
+2. **Admin reviews** pending registrations at **Admin Panel â†’ Pending Approvals**
 3. **Admin approves or rejects** each registration
 4. **Approved users** can then log in normally
 
@@ -138,7 +138,7 @@ Admins can approve users individually or use "Approve All" for batch approval.
 
 Add items quickly by scanning product barcodes:
 
-1. Go to **Fridge Items → Scan Barcode**
+1. Go to **Fridge Items â†’ Scan Barcode**
 2. Allow camera access when prompted
 3. Point your camera at a product barcode
 4. The app queries the **Open Food Facts** database automatically
@@ -161,7 +161,7 @@ The ingredient matching uses fuzzy matching - it looks for item names within ing
 
 Generate recipes based on your fridge contents:
 
-1. Go to **Recipes → AI Recipe Suggestions**
+1. Go to **Recipes â†’ AI Recipe Suggestions**
 2. Select ingredients from your fridge
 3. Choose dietary preferences if needed
 4. Get AI-generated recipes tailored to your ingredients
@@ -318,14 +318,14 @@ az webapp config appsettings set `
         FLASK_CONFIG=production `
         SECRET_KEY=$SECRET_KEY `
         DATABASE_URL=$DATABASE_URL `
-        AI_ADAPTER=local `
+        AI_PROVIDER=local `
         SCM_DO_BUILD_DURING_DEPLOYMENT=true
 
 # Optional: Configure AI Recipe Generation
 # For Gemini:
-# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_ADAPTER=gemini GEMINI_API_KEY=your-key
+# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_PROVIDER=gemini AI_API_KEY=your-key
 # For Groq:
-# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_ADAPTER=groq GROQ_API_KEY=your-key
+# az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AI_PROVIDER=groq AI_API_KEY=your-key
 ```
 
 ### Step 7: Configure Startup Command
@@ -488,10 +488,11 @@ az group delete --name $RESOURCE_GROUP --yes --no-wait
 
 | Resource | Tier | Estimated Monthly Cost |
 |----------|------|----------------------|
-| App Service | B1 (Basic) | ~£10/month |
-| PostgreSQL | Burstable B1ms | ~£12/month |
-| **Total** | | **~£22/month** |
+| App Service | B1 (Basic) | ~Â£10/month |
+| PostgreSQL | Burstable B1ms | ~Â£12/month |
+| **Total** | | **~Â£22/month** |
 
 Free tier options:
 - App Service: F1 (free, limited)
 - PostgreSQL: Use SQLite locally, upgrade for production
+

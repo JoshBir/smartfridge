@@ -276,17 +276,18 @@ class AIAdapter(Protocol):
 | Adapter | Provider | Config Key | Default Model |
 |---------|----------|------------|---------------|
 | `LocalAdapter` | Rules Engine | `local` | N/A |
+| `OpenRouterAdapter` | OpenRouter | `openrouter` | `meta-llama/llama-3.2-3b-instruct:free` |
 | `OpenAIAdapter` | OpenAI | `openai` | `gpt-3.5-turbo` |
 | `AzureOpenAIAdapter` | Azure OpenAI | `azure` | `gpt-35-turbo` |
-| `GeminiAdapter` | Google | `gemini` | `gemini-1.5-flash` |
+| `GeminiAdapter` | Google | `gemini` | `gemini-2.0-flash` |
 | `GroqAdapter` | Groq | `groq` | `llama-3.1-8b-instant` |
 | `MockAdapter` | Testing | `mock` | N/A |
 
 **Configuration:**
 ```ini
-AI_PROVIDER=gemini          # or local, openai, azure, groq
+AI_PROVIDER=openrouter      # recommended - or local, openai, azure, gemini, groq
 AI_API_KEY=your-api-key
-AI_MODEL=gemini-1.5-flash   # Optional override
+AI_MODEL=meta-llama/llama-3.2-3b-instruct:free   # Optional override
 ```
 
 **Factory Function:**
@@ -517,7 +518,8 @@ See `docs/GETTING-STARTED.md` for full deployment guide.
 ### AI Providers (Optional)
 | Provider | Free Tier | URL |
 |----------|-----------|-----|
-| Google Gemini | 15 RPM, 1M tokens/day | https://makersuite.google.com/app/apikey |
+| OpenRouter | Free models available | https://openrouter.ai/keys |
+| Google Gemini | 15 RPM, 1M tokens/day | https://aistudio.google.com/app/apikey |
 | Groq | 30 RPM, 14,400 req/day | https://console.groq.com/keys |
 
 ---

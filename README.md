@@ -4,14 +4,14 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 
 ## Features
 
--  **Barcode Scanning** - Scan products with your phone camera to auto-fill item details
--  **Ingredient Management** - Track fridge items with expiry dates
--  **AI Recipe Suggestions** - Get recipe ideas based on available ingredients
--  **Cook & Deduct** - Mark recipes as cooked to automatically remove used ingredients
--  **Favourite Sites** - Save and organise cooking websites by tags
--  **Multi-User Support** - Individual accounts with admin approval for new registrations
--  **Security First** - OWASP-aligned security practices
--  **Responsive Design** - Works on desktop and mobile
+- **Barcode Scanning** - Scan products with your phone camera to auto-fill item details
+- **Ingredient Management** - Track fridge items with expiry dates
+- **AI Recipe Suggestions** - Get recipe ideas based on available ingredients
+- **Cook & Deduct** - Mark recipes as cooked to automatically remove used ingredients
+- **Favourite Sites** - Save and organise cooking websites by tags
+- **Multi-User Support** - Individual accounts with admin approval for new registrations
+- **Security First** - OWASP-aligned security practices
+- **Responsive Design** - Works on desktop and mobile
 
 ## Quick Start
 
@@ -42,21 +42,22 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
-
-   # For development
-   pip install -r requirements-dev.txt
    ```
 
 4. **Configure environment**
    ```bash
+   # Windows
+   copy .env.example .env
+
+   # Linux/macOS
    cp .env.example .env
-   # Edit .env with your settings
    ```
+   Edit `.env` with your settings (especially add your AI API key).
 
 5. **Initialise the database**
    ```bash
    flask init-db
-   flask create-admin --username admin --email admin@example.com
+   flask create-admin
    ```
 
 6. **Run the application**
@@ -68,7 +69,7 @@ A secure, production-ready Flask application for managing fridge ingredients, ge
 
 ## Key Features Explained
 
-###  Barcode Scanning
+### Barcode Scanning
 
 Scan product barcodes using your phone's camera to automatically fill in:
 - Product name
@@ -78,9 +79,7 @@ Scan product barcodes using your phone's camera to automatically fill in:
 
 **Powered by [Open Food Facts](https://world.openfoodfacts.org)** - a free, open-source food database with millions of products. No API key required!
 
-The scanner works best on mobile devices with camera access. You can also manually enter barcodes.
-
-###  Cook & Deduct Ingredients
+### Cook & Deduct Ingredients
 
 When you cook a recipe:
 1. Click "Cook This" on any saved recipe
@@ -88,13 +87,39 @@ When you cook a recipe:
 3. Select which items you're using
 4. Items are automatically removed from your fridge
 
-###  User Registration & Admin Approval
+### User Registration & Admin Approval
 
 New users must be approved by an admin before they can log in:
 1. User registers an account
 2. Admin sees pending approval in the admin dashboard
 3. Admin approves or rejects the registration
 4. User can log in once approved
+
+## AI Recipe Suggestions
+
+SmartFridge supports multiple AI backends for recipe suggestions:
+
+| Provider | Free Tier | Setup |
+|----------|-----------|-------|
+| **Local** (default) | Unlimited | No setup needed - rule-based matching |
+| **OpenRouter** (recommended) | Free models available | Get key at [openrouter.ai/keys](https://openrouter.ai/keys) |
+| **Google Gemini** | 15 RPM, 1M tokens/day | Get key at [aistudio.google.com](https://aistudio.google.com/app/apikey) |
+| **Groq** | 30 RPM, 14,400 req/day | Get key at [console.groq.com](https://console.groq.com/keys) |
+| **OpenAI** | Paid | Get key at [platform.openai.com](https://platform.openai.com) |
+
+### Recommended: OpenRouter (Free)
+
+OpenRouter provides access to many free AI models. Configure with:
+```ini
+AI_PROVIDER=openrouter
+AI_API_KEY=sk-or-v1-your-key-here
+AI_MODEL=meta-llama/llama-3.2-3b-instruct:free
+```
+
+Free models available:
+- `meta-llama/llama-3.2-3b-instruct:free`
+- `google/gemma-2-9b-it:free`
+- `mistralai/mistral-7b-instruct:free`
 
 ## Configuration
 
@@ -105,35 +130,17 @@ Key environment variables:
 | `FLASK_CONFIG` | Configuration mode | `development` |
 | `SECRET_KEY` | Session encryption key | *Required* |
 | `DATABASE_URL` | Database connection string | `sqlite:///smartfridge.db` |
-| `AI_PROVIDER` | AI backend (`local`, `openai`, `azure`, `gemini`, `groq`) | `local` |
-| `AI_API_KEY` | API key for AI provider | *Optional* |
+| `AI_PROVIDER` | AI backend (`local`, `openrouter`, `gemini`, `groq`, `openai`, `azure`) | `openrouter` |
+| `AI_API_KEY` | API key for AI provider | *Required for AI* |
+| `AI_MODEL` | AI model to use | Provider-specific default |
 
 See `.env.example` for all options.
-
-## AI Recipe Suggestions
-
-SmartFridge supports multiple AI backends for recipe suggestions:
-
-| Provider | Free Tier | Setup |
-|----------|-----------|-------|
-| **Local** (default) | Unlimited | No setup needed - rule-based matching |
-| **Google Gemini** | 15 RPM, 1M tokens/day | Get key at [makersuite.google.com](https://makersuite.google.com/app/apikey) |
-| **Groq** | 30 RPM, 14,400 req/day | Get key at [console.groq.com](https://console.groq.com/keys) |
-| **OpenAI** | Paid | Get key at [platform.openai.com](https://platform.openai.com) |
-| **Azure OpenAI** | Paid | Azure subscription required |
-
-Configure with:
-```ini
-AI_PROVIDER=gemini
-AI_API_KEY=your-api-key
-```
 
 ## CLI Commands
 
 ```bash
 # Database management
 flask init-db              # Create database tables
-flask db upgrade           # Run migrations
 
 # User management
 flask create-admin         # Create admin user
@@ -141,7 +148,7 @@ flask set-password         # Reset user password
 flask list-users           # List all users
 
 # Data management
-flask seed-recipes         # Load canonical recipes
+flask seed-recipes         # Load sample recipes
 flask clean-expired        # Remove old expired items
 ```
 
@@ -163,15 +170,12 @@ pytest tests/test_auth.py -v
 ### Docker
 
 ```bash
-# Build and run
 docker-compose up -d
 ```
 
 ### Azure App Service
 
-See [docs/azure-deploy.md](docs/azure-deploy.md) for detailed instructions.
-
-See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for complete setup guide.
+See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for complete setup and deployment guide.
 
 ## Security Features
 
@@ -193,3 +197,4 @@ MIT Licence - see [LICENCE](LICENCE) file.
 - [Flask](https://flask.palletsprojects.com/) - Web framework
 - [Bootstrap](https://getbootstrap.com/) - UI framework
 - [Open Food Facts](https://world.openfoodfacts.org) - Barcode database
+- [OpenRouter](https://openrouter.ai) - AI model gateway
