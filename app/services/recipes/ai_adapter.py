@@ -345,8 +345,10 @@ class GeminiAdapter(OpenAIAdapter):
     """
     Google Gemini API adapter for recipe generation.
     
-    Uses Google's Gemini models (generous free tier: 15 RPM, 1M tokens/day).
-    Get your free API key at: https://makersuite.google.com/app/apikey
+    Uses the new google-genai package (generous free tier: 15 RPM, 1M tokens/day).
+    Get your free API key at: https://aistudio.google.com/app/apikey
+    
+    Install: pip install google-genai
     """
     
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
@@ -355,10 +357,10 @@ class GeminiAdapter(OpenAIAdapter):
         
         Args:
             api_key: Google AI API key.
-            model: Model to use (default: gemini-1.5-flash).
+            model: Model to use (default: gemini-2.0-flash).
         """
         self.api_key = api_key or current_app.config.get('AI_API_KEY')
-        self.model = model or current_app.config.get('AI_MODEL', 'gemini-1.5-flash')
+        self.model = model or current_app.config.get('AI_MODEL', 'gemini-2.0-flash')
     
     def generate_recipes(
         self,
@@ -374,20 +376,16 @@ class GeminiAdapter(OpenAIAdapter):
             return LocalAdapter().generate_recipes(items, max_results)
         
         try:
-            import google.generativeai as genai
+            from google import genai
             
-            genai.configure(api_key=self.api_key)
-            model = genai.GenerativeModel(self.model)
+            client = genai.Client(api_key=self.api_key)
             
             results: List[RecipeDraft] = []
             
             for _ in range(min(max_results, 3)):
-                response = model.generate_content(
-                    self._build_prompt(items),
-                    generation_config=genai.types.GenerationConfig(
-                        max_output_tokens=1000,
-                        temperature=0.7,
-                    )
+                response = client.models.generate_content(
+                    model=self.model,
+                    contents=self._build_prompt(items),
                 )
                 
                 if response.text:
